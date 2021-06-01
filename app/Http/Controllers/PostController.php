@@ -3,7 +3,6 @@
 namespace App\Http\Controllers;
 
 use App\Models\Post;
-//use App\Http\Controllers\Controller;
 use Illuminate\Http\Request;
 
 class PostController extends Controller
@@ -13,7 +12,10 @@ class PostController extends Controller
         $this->middleware('auth')->only('create');
         $this->middleware('auth')->only('update');
         $this->middleware('auth')->only('destroy');
+        
     }
+
+
     /**
      * Display a listing of the resource.
      *
@@ -24,9 +26,10 @@ class PostController extends Controller
         $posts = Post::get();
 
         return view('Post.index', compact('posts'));
+    
     }
 
-    /**
+        /**
      * Show the form for creating a new resource.
      *
      * @return \Illuminate\Http\Response
@@ -44,9 +47,28 @@ class PostController extends Controller
      */
     public function store(Request $request)
     {
+
+        $request->validate([
+            'title' => 'required|unique:posts|max:225',
+            'description' => 'required'
+        ]);
+        // dd($request);
+        if($request->hasFile('img')){
+            $filenameWithExt = $request->file('img')->getClientOriginalName();
+            $filename = pathinfo($filenameWithExt, PATHINFO_FILENAME);
+            $extension = $request->file('img')->getClientOriginalExtension();
+            $fileNameToStore = $filename.'_'.time().'.'.$extension;
+            $path = $request->file('img')->storeAs('public/img', $fileNameToStore);
+        }else{
+            $fileNameToStore = '';
+        }
+
+        
+        
         $post = new Post();
         $post ->title = $request ->title;
         $post ->description = $request ->description;
+        $post->img = $fileNameToStore;
         $post ->save();
 
         return redirect('/posts');
@@ -61,7 +83,6 @@ class PostController extends Controller
     public function show(Post $post)
     {
         return view('Post.show', compact('post'));
-
     }
 
     /**
@@ -72,6 +93,7 @@ class PostController extends Controller
      */
     public function edit($id)
     {
+        
         $post = Post::find($id);
         return view('Post.edit', compact('post'));
     }
@@ -99,7 +121,7 @@ class PostController extends Controller
      * @param  \App\Models\Post  $post
      * @return \Illuminate\Http\Response
      */
-    public function destroy($id)
+    public function destroy($post)
     {
         $data = Post::find($post);
         $data->delete();
