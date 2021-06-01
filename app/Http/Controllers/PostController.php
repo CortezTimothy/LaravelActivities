@@ -102,7 +102,7 @@ class PostController extends Controller
     public function destroy($id)
     {
         $data = Post::find($post);
-        $data ->delete();
+        $data->delete();
 
         return redirect('/posts');
     }
